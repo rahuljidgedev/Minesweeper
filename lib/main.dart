@@ -46,6 +46,7 @@ class _MyGridAppState extends State<GameGridApp> {
       remainingBlocks;
   var map;
   var statusMap;
+  var flaggedMap;
   List<Widget> blockList = [];
 
   _MyGridAppState(String title) {
@@ -90,8 +91,28 @@ class _MyGridAppState extends State<GameGridApp> {
             Expanded(
               child: GridView.count(
                 crossAxisCount: columns,
+                childAspectRatio: (MediaQuery.of(context).size.width / 2) / (MediaQuery.of(context).size.height / 4),
                 children: List.generate(rows * columns, (index) {
-                  if (!statusMap[index]) {
+                  if(flaggedMap[index]) {
+                    return Container(
+                      margin: EdgeInsets.all(8),
+                      child: Material(
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.all(Radius.circular(8))),
+                          child: InkWell(
+                            onLongPress: () => _flagTheMine(index),
+                            child: Container(
+                              margin: EdgeInsets.all(gameWon ? 6 : 12),
+                              child: Image(
+                                image: AssetImage('assets/flagged_mine.png'),
+                              ),
+                            ),
+                          ),
+                      ),
+                    );
+                  }else if (!statusMap[index]) {
                     return Container(
                         margin: EdgeInsets.all(8),
                         child: Material(
@@ -101,6 +122,7 @@ class _MyGridAppState extends State<GameGridApp> {
                                   BorderRadius.all(Radius.circular(8))),
                           child: RaisedButton(
                             onPressed: () => _processTap(index),
+                            onLongPress: () => _flagTheMine(index),
                             color: Colors.white70,
                             splashColor: Colors.teal,
                           ),
@@ -277,9 +299,10 @@ class _MyGridAppState extends State<GameGridApp> {
   }
 
   _processTap(int index) {
-    /*if used tapped the mine block.*/
+    /*if user tapped the mine block.*/
     if (map[index] == -1) {
       statusMap = List.filled((rows * columns), true);
+      flaggedMap = List.filled((rows * columns), false);
       Fluttertoast.showToast(
           msg: 'You lost.',
           toastLength: Toast.LENGTH_SHORT,
@@ -294,6 +317,7 @@ class _MyGridAppState extends State<GameGridApp> {
       if (remainingBlocks == 0) {
         gameWon = true;
         statusMap = List.filled((rows * columns), true);
+        flaggedMap= List.filled((rows * columns), false);
         Fluttertoast.showToast(
             msg: 'You won.',
             toastLength: Toast.LENGTH_SHORT,
@@ -312,6 +336,7 @@ class _MyGridAppState extends State<GameGridApp> {
     gameWon = false;
     if (gridSize != 0) rows = columns = this.gridSize = gridSize;
     statusMap = List.filled((rows * columns), false);
+    flaggedMap = List.filled((rows * columns), false);
     topLeft = -columns - 1;
     top = -columns;
     topRight = -columns + 1;
@@ -336,6 +361,11 @@ class _MyGridAppState extends State<GameGridApp> {
       gridSize = rows = columns = 4;
     }
     _createNewGame(gridSize);
+    setState(() {});
+  }
+
+  _flagTheMine(int index) {
+    flaggedMap[index] = !flaggedMap[index];
     setState(() {});
   }
 }
